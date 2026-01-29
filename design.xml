@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DesignGuide name="Argos-EHR-Theme" version="1.0">
+
+  <Brand>
+    <Philosophy>
+      Clinical-grade, calm, high-trust SaaS aesthetic. Low noise. High clarity.
+      Designed for healthcare, data density, and enterprise credibility.
+    </Philosophy>
+  </Brand>
+
+  <Colors>
+    <Color role="primary" hex="#98B888" usage="Primary CTAs, highlights"/>
+    <Color role="background-dark" hex="#080A06" usage="Header, footer, dark sections"/>
+    <Color role="background-light" hex="#F4F8F0" usage="Main page background"/>
+    <Color role="accent-secondary" hex="#7A956C" usage="Secondary UI accents"/>
+    <Color role="neutral-mid" hex="#BEC3BB" usage="Borders, dividers, disabled states"/>
+    <Color role="neutral-dark" hex="#4B4E35" usage="Body text, icons"/>
+    <Color role="accent-warning" hex="#BD7C49" usage="Warnings, alerts, emphasis"/>
+  </Colors>
+
+  <Typography>
+    <Font role="primary" family="Inter" fallback="Helvetica Neue, sans-serif"/>
+    <Font role="optional-serif" family="Merriweather" usage="Hero headlines"/>
+
+    <Scale>
+      <Text type="h1" size="64px" lineHeight="72px" weight="700"/>
+      <Text type="h2" size="48px" lineHeight="56px" weight="700"/>
+      <Text type="h3" size="36px" lineHeight="44px" weight="600"/>
+      <Text type="h4" size="28px" lineHeight="36px" weight="600"/>
+      <Text type="body" size="18px" lineHeight="1.6" weight="400"/>
+      <Text type="small" size="14px" lineHeight="1.5" weight="400"/>
+    </Scale>
+  </Typography>
+
+  <Layout>
+    <Grid columns="12" gutter="24px"/>
+    <Containers>
+      <Container size="small" width="680px"/>
+      <Container size="medium" width="960px"/>
+      <Container size="large" width="1280px"/>
+    </Containers>
+    <Breakpoints>
+      <Breakpoint name="mobile" maxWidth="640px"/>
+      <Breakpoint name="tablet" minWidth="641px" maxWidth="1024px"/>
+      <Breakpoint name="desktop" minWidth="1025px"/>
+    </Breakpoints>
+  </Layout>
+
+  <Spacing>
+    <Unit name="xs" value="8px"/>
+    <Unit name="sm" value="16px"/>
+    <Unit name="md" value="32px"/>
+    <Unit name="lg" value="64px"/>
+    <Unit name="xl" value="128px"/>
+  </Spacing>
+
+  <Components>
+
+    <Navbar height="80px" background="#080A06">
+      <TextColor value="#F4F8F0"/>
+      <PrimaryCTA background="#98B888" textColor="#FFFFFF"/>
+    </Navbar>
+
+    <ButtonVariants>
+      <Button type="primary" background="#98B888" text="#FFFFFF" radius="8px"/>
+      <Button type="secondary" background="transparent" border="#98B888" text="#98B888"/>
+      <Button type="disabled" background="#BEC3BB" text="#FFFFFF"/>
+    </ButtonVariants>
+
+    <Card>
+      <Background color="#FFFFFF"/>
+      <Radius value="12px"/>
+      <Shadow value="rgba(0,0,0,0.08) 0px 4px 12px"/>
+    </Card>
+
+    <Form>
+      <Label color="#4B4E35"/>
+      <Input background="#FFFFFF" border="#BEC3BB"/>
+      <Focus border="#98B888"/>
+      <Error color="#BD7C49"/>
+    </Form>
+
+  </Components>
+
+  <Sections>
+    <Section name="Hero" height="100vh" emphasis="Headline + Primary CTA"/>
+    <Section name="Features" layout="3-4 column grid"/>
+    <Section name="HowItWorks" layout="Horizontal steps"/>
+    <Section name="Testimonials" layout="Card based quotes"/>
+    <Section name="Pricing" highlight="Recommended plan"/>
+    <Section name="FAQ"/>
+    <Section name="Footer" background="#080A06"/>
+  </Sections>
+
+  <Iconography>
+    <Style strokeWidth="2px" primaryColor="#4B4E35"/>
+    <StatusColors success="#98B888" warning="#BD7C49"/>
+  </Iconography>
+
+  <Accessibility>
+    <Contrast minimum="4.5:1"/>
+    <KeyboardNavigation enabled="true"/>
+    <SemanticHTML enabled="true"/>
+    <FocusOutline visible="true"/>
+  </Accessibility>
+
+  <ResponsiveRules>
+    <Mobile>
+      <Navigation mode="hamburger"/>
+      <Layout columns="1"/>
+    </Mobile>
+    <Tablet>
+      <Layout columns="2"/>
+    </Tablet>
+    <Desktop>
+      <Layout columns="3-4"/>
+    </Desktop>
+  </ResponsiveRules>
+
+</DesignGuide>

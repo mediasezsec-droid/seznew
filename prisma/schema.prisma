@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Enums
+enum Role {
+  ADMIN
+  MANAGER
+  STAFF
+  WATCHER
+}
+
+enum ProfileStatus {
+  COMPLETED
+  SKIPPED
+}
+
+enum CrockeryStatus {
+  PENDING
+  NOT_REQUIRED
+  COMPLETED
+}
+
+enum EventStatus {
+  BOOKED
+  CANCELLED
+  COMPLETED
+}
+
+// Models
+model User {
+  id            String         @id @default(cuid())
+  username      String         @unique
+  password      String
+  email         String?
+  mobile        String?
+  name          String?
+  role          Role           @default(STAFF)
+  profileStatus ProfileStatus?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  events        Event[]        @relation("CreatedBy")
+
+  @@map("users")
+}
+
+model InventoryItem {
+  id                String   @id @default(cuid())
+  name              String
+  category          String
+  totalQuantity     Int
+  availableQuantity Int
+  unit              String   @default("pcs")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("inventory_items")
+}
+
+model Event {
+  id                  String         @id @default(cuid())
+  name                String
+  mobile              String
+  email               String?
+  occasionDate        DateTime
+  occasionDay         String?
+  occasionTime        String
+  description         String
+  hall                String[]
+  catererName         String
+  catererPhone        String
+  
+  thaalCount          Int            @default(0)
+  sarkariThaalSet     Int            @default(0)
+  bhaiSaabIzzan       Boolean        @default(false)
+  benSaabIzzan        Boolean        @default(false)
+  extraChilamchiLota  Int            @default(0)
+  tablesAndChairs     Int            @default(0)
+  mic                 Boolean        @default(false)
+  crockeryRequired    Boolean        @default(false)
+  thaalForDevri       Boolean        @default(false)
+  paat                Boolean        @default(false)
+  masjidLight         Boolean        @default(false)
+  crockeryStatus      CrockeryStatus @default(NOT_REQUIRED)
+  
+  acStartTime         String?
+  partyTime           String?
+  decorations         Boolean        @default(false)
+  gasCount            Int?
+  menu                String?
+  
+  status              EventStatus    @default(BOOKED)
+  
+  // New Fields for Public/Private Logic
+  eventType           EventType      @default(PRIVATE)
+  hallCounts          Json?          // Stores { "Hall A": 50, "Hall B": 30 }
+  
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  
+  createdBy           User?          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById         String?
+
+  @@map("events")
+}
+
+enum EventType {
+  PUBLIC
+  PRIVATE
+}
+
+model Caterer {
+  id    String @id @default(cuid())
+  name  String @unique
+  phone String
+
+  @@map("caterers")
+}
+
+model Hall {
+  id         String      @id @default(cuid())
+  name       String      @unique
+  width      Float?      // Width in feet
+  length     Float?      // Length in feet
+  floorPlans FloorPlan[]
+
+  @@map("halls")
+}
+
+model FloorPlan {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Wedding Setup"
+  hallId      String
+  hall        Hall     @relation(fields: [hallId], references: [id], onDelete: Cascade)
+  data        Json     // Stores items: { id, type, x, y, rotation, ... }[]
+  width       Float    // Snapshot of width used
+  length      Float    // Snapshot of length used
+  isPublic    Boolean  @default(false)
+  publicToken String?  @unique @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("floor_plans")
+}
+
+model FloorItemType {
+  id        String   @id @default(cuid())
+  name      String   // e.g. "Royal Round Table"
+  type      String   // 'circle' | 'rectangle'
+  width     Float    // Feet
+  length    Float    // Feet
+  color     String?  // hex or tailwind class
+  icon      String?  // lucide icon name
+  createdAt DateTime @default(now())
+  
+  @@map("floor_item_types")
+}
+
+model Config {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+
+  @@map("config")
+}
+
+model KhidmatRequest {
+  id        String   @id @default(cuid())
+  miqat     String
+  name      String
+  phone     String
+  date      DateTime
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("khidmat_requests")
+}
+
+model MemberRegistration {
+  id          String   @id @default(cuid())
+  title       String
+  name        String
+  its         String   @unique
+  email       String
+  dob         DateTime
+  phone       String
+  quranHifz   String
+  passport    String
+  kunSafar    String
+  occupation  String
+  sports      String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("member_registrations")
+}
+
+model Blog {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  author      String
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blogs")
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  href      String?
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banners")
+}
