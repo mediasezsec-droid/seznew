@@ -60,7 +60,6 @@ export default function LoginForm() {
                         <OrnateHeading
                             title="Admin Portal"
                             subtitle="Sign in to manage the application"
-                            isDarkBg={true}
                         />
                     </div>
 
