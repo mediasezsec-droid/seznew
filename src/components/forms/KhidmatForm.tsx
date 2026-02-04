@@ -4,11 +4,12 @@ import { submitKhidmatRequest } from "@/app/actions";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { GoldenButton } from "../ui/premium-components";
-import { User, Phone, Calendar, PenTool, Loader2 } from "lucide-react";
+import { User, Phone, Calendar, PenTool, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function KhidmatForm() {
     const [loading, setLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
         setLoading(true);
@@ -22,10 +23,31 @@ export function KhidmatForm() {
         if (result.error) {
             toast.error(result.error);
         } else {
-            toast.success("Thank you for your invitation. We will get in touch shortly.");
-            (document.getElementById("khidmatForm") as HTMLFormElement)?.reset();
+            setIsSuccess(true);
+            toast.success("Invitation sent successfully!");
         }
     };
+
+    if (isSuccess) {
+        return (
+            <div className="text-center py-10 space-y-6 animate-in fade-in zoom-in duration-500">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                </div>
+                <div className="space-y-2">
+                    <h3 className="text-2xl font-serif font-bold text-primary-dark">Invitation Sent!</h3>
+                    <p className="text-neutral-500 max-w-xs mx-auto">
+                        Jazakallah Khair. We have received your Khidmat invitation. Our team will contact you shortly to confirm the details.
+                    </p>
+                </div>
+                <div className="pt-4">
+                    <GoldenButton onClick={() => setIsSuccess(false)} className="min-w-[200px]">
+                        Send Another
+                    </GoldenButton>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full">

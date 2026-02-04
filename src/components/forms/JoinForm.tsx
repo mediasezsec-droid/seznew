@@ -1,13 +1,12 @@
-"use client";
-
 import { submitMemberRegistration } from "@/app/actions";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { GoldenButton } from "../ui/premium-components";
-import { User, Mail, Phone, Calendar, Hash, Globe, Activity, Trophy, Loader2, FileText } from "lucide-react";
+import { User, Mail, Phone, Calendar, Hash, Globe, Activity, Trophy, Loader2, FileText, CheckCircle2 } from "lucide-react";
 
 export function JoinForm() {
     const [loading, setLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
         setLoading(true);
@@ -21,14 +20,35 @@ export function JoinForm() {
         if (result.error) {
             toast.error(result.error);
         } else {
-            toast.success("Registration successful! We will contact you soon.");
-            (document.getElementById("joinForm") as HTMLFormElement)?.reset();
+            setIsSuccess(true);
+            toast.success("Registration successful!");
         }
     };
 
     const labelClass = "text-xs font-bold text-primary-dark uppercase tracking-wider flex items-center gap-2 mb-2";
     const inputClass = "w-full h-12 px-4 bg-white/60 border border-gold/30 rounded-lg focus:border-gold focus:ring-1 focus:ring-gold/50 outline-none transition-all placeholder:text-neutral-400 text-primary-dark";
     const selectClass = "w-full h-12 px-4 bg-white/60 border border-gold/30 rounded-lg focus:border-gold focus:ring-1 focus:ring-gold/50 outline-none transition-all text-primary-dark appearance-none cursor-pointer";
+
+    if (isSuccess) {
+        return (
+            <div className="text-center py-10 space-y-6 animate-in fade-in zoom-in duration-500">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                </div>
+                <div className="space-y-2">
+                    <h3 className="text-2xl font-serif font-bold text-primary-dark">Welcome Aboard!</h3>
+                    <p className="text-neutral-500 max-w-sm mx-auto">
+                        Your application to join the committee has been submitted successfully. We will review your details and get back to you soon.
+                    </p>
+                </div>
+                <div className="pt-4">
+                    <GoldenButton onClick={() => window.location.href = '/'} className="min-w-[200px]">
+                        Return to Home
+                    </GoldenButton>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full">

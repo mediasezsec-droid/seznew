@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { getMisriDate, MisriDate } from "@/lib/misri-calendar";
 import { startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
@@ -76,15 +76,18 @@ export function AttendanceCalendar({ history }: AttendanceCalendarProps) {
                     onMonthChange={setMonth}
                     className="p-4 w-full"
                     components={{
-                        DayContent: ({ date }) => {
+                        DayButton: (props) => {
+                            const { date } = props.day;
                             const hijri = hijriDates[date.toDateString()];
                             return (
-                                <div className="flex flex-col items-center justify-center w-full h-full min-h-[50px] gap-0.5 z-10 relative">
-                                    <span className="text-xl font-bold leading-none text-neutral-700">{date.getDate()}</span>
-                                    <span className="text-[10px] uppercase font-bold text-gold/80 leading-none mt-1 min-h-[10px]">
-                                        {hijri ? `${hijri.monthNameAr.substring(0, 3)} ${hijri.dayAr}` : ''}
-                                    </span>
-                                </div>
+                                <CalendarDayButton {...props}>
+                                    <div className="flex flex-col items-center justify-center w-full h-full min-h-[50px] gap-0.5 z-10 relative">
+                                        <span className="text-xl font-bold leading-none text-neutral-700">{date.getDate()}</span>
+                                        <span className="text-xs uppercase font-bold text-gold/80 leading-none mt-1 min-h-[10px] font-[family-name:var(--font-arabic)]">
+                                            {hijri ? `${hijri.monthNameAr.substring(0, 3)} ${hijri.dayAr}` : ''}
+                                        </span>
+                                    </div>
+                                </CalendarDayButton>
                             );
                         }
                     }}
