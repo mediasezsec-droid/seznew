@@ -84,6 +84,7 @@ export async function getAttendanceStats(eventId: string) {
   // Group by Floor (this is heavy, do simplified for now)
   const records = await prisma.attendanceRecord.findMany({
     where: { eventId },
+    take: 1000, // Safety limit
     include: {
       user: {
         select: {
@@ -96,4 +97,167 @@ export async function getAttendanceStats(eventId: string) {
   });
 
   return { success: true, data: records, count: totalRecords };
+}
+
+/**
+ * Get attendance stats for a specific user (Profile View)
+ */
+export async function getUserAttendance(userId: string) {
+  try {
+    // 1. Get all Past Events (Attendance Clones that are inactive or events in past)
+    // Actually, we should check against *All Events* that had attendance sessions?
+    // Or just check `AttendanceEventClone`?
+    // Let's assume an event counts if it has an AttendanceEventClone entry.
+
+    const allEvents = await prisma.attendanceEventClone.findMany({
+      where: {
+        // Consider events that have started in the past
+        startTime: { lt: new Date() },
+      },
+      include: {
+        event: { select: { id: true, name: true, occasionDate: true } },
+      },
+      orderBy: { startTime: "desc" },
+    });
+
+    // 2. Get User's Attendance Records
+    const userRecords = await prisma.attendanceRecord.findMany({
+      where: { userId },
+      select: { eventId: true, status: true, timestamp: true },
+    });
+
+    const attendedEventIds = new Set(userRecords.map((r) => r.eventId));
+
+    // 3. Map to Calendar Data
+    // Status: PRESENT (in records), ABSENT (in allEvents but not in records)
+    const history = allEvents.map((clone) => {
+      const isPresent = attendedEventIds.has(clone.eventId);
+      return {
+        eventId: clone.eventId,
+        eventName: clone.event.name,
+        date: clone.event.occasionDate, // Or clone.startTime? occasionDate is safer for calendar
+        status: isPresent ? "PRESENT" : "ABSENT",
+      };
+    });
+
+    return { success: true, data: history };
+  } catch (error) {
+    console.error("Error fetching user attendance:", error);
+    return { success: false, error: "Failed to fetch attendance history" };
+  }
+}
+
+/**
+ * Get Overall Attendance Analytics (Admin View)
+ */
+export async function getAttendanceAnalytics() {
+  try {
+    // 1. Total Events Tracked
+    const totalEvents = await prisma.attendanceEventClone.count();
+
+    // 2. Total Attendance Records
+    const totalRecords = await prisma.attendanceRecord.count();
+
+    // 3. Average Attendance per Event
+    const avgAttendance =
+      totalEvents > 0 ? Math.round(totalRecords / totalEvents) : 0;
+
+    // 4. Event-wise breakdown (Last 10)
+    // We need to group by event. `groupBy` is good, but we need Event Names.
+    // `findMany` on Clones with `_count` of records is better.
+
+    const recentEvents = await prisma.attendanceEventClone.findMany({
+      take: 10,
+      orderBy: { startTime: "desc" },
+      include: {
+        event: { select: { name: true, occasionDate: true } },
+      },
+    });
+
+    // Prisma `include` + `_count` sometimes tricky for nested.
+    // Simpler: Fetch clones, then fetch counts? Or use `attendanceRecord.groupBy`
+
+    const eventStats = await prisma.attendanceRecord.groupBy({
+      by: ["eventId"],
+      _count: { userId: true },
+      orderBy: { _count: { userId: "desc" } }, // Top attended?
+      take: 20,
+    });
+
+    // Hydrate names
+    const eventIds = eventStats.map((e) => e.eventId);
+    const events = await prisma.event.findMany({
+      where: { id: { in: eventIds } },
+      select: { id: true, name: true, occasionDate: true },
+    });
+
+    const eventMap = new Map(events.map((e) => [e.id, e]));
+
+    const formattedStats = eventStats
+      .map((stat) => ({
+        id: stat.eventId,
+        resource: eventMap.get(stat.eventId)?.name || "Unknown Event",
+        date: eventMap.get(stat.eventId)?.occasionDate,
+        count: stat._count.userId,
+      }))
+      .filter((s) => s.resource !== "Unknown Event");
+
+    return {
+      success: true,
+      stats: {
+        totalEvents,
+        totalRecords,
+        avgAttendance,
+        chartData: formattedStats,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching analytics:", error);
+    return { success: false, error: "Failed to fetch analytics" };
+  }
+}
+
+/**
+ * Get Event Details and Attendees for Drill Down
+ */
+export async function getEventAttendees(eventId: string) {
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { id: true, name: true, occasionDate: true, description: true },
+    });
+
+    if (!event) return { success: false, error: "Event not found" };
+
+    const attendees = await prisma.attendanceRecord.findMany({
+      where: { eventId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            its: true,
+            floorMemberOf: { select: { name: true } },
+            headedBy: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { user: { name: "asc" } },
+    });
+
+    const formattedAttendees = attendees.map((record) => ({
+      id: record.user.id,
+      name: record.user.name,
+      its: record.user.its,
+      floor: record.user.floorMemberOf[0]?.name || "Unassigned",
+      head: record.user.headedBy?.name || "-",
+      status: record.status,
+      markedAt: record.timestamp,
+    }));
+
+    return { success: true, event, attendees: formattedAttendees };
+  } catch (error) {
+    console.error("Error fetching event attendees:", error);
+    return { success: false, error: "Failed to fetch attendees" };
+  }
 }

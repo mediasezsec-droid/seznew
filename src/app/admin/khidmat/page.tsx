@@ -23,7 +23,7 @@ export default async function KhidmatAdminPage() {
     const canAccess = isAdmin || await hasModuleAccess(userId, "/admin/khidmat");
 
     if (!canAccess) {
-        redirect("/login");
+        redirect("/unauthorized");
     }
 
     const requests = await prisma.khidmatRequest.findMany({

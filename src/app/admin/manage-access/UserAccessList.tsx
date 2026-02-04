@@ -148,18 +148,23 @@ export function UserAccessList({ users, allModules }: Props) {
 
             {/* Quick Edit Drawer */}
             <Drawer open={!!selectedUser} onOpenChange={handleDrawerOpenChange}>
-                <DrawerContent className="max-h-[85vh]">
-                    <div className="mx-auto w-full max-w-xl">
-                        <DrawerHeader className="pb-4 border-b border-neutral-100">
-                            <div className="text-center">
-                                <DrawerTitle className="text-xl font-serif text-primary-dark mb-1">Manage Access</DrawerTitle>
-                                <DrawerDescription>
-                                    Assign modules for <span className="font-bold text-neutral-800">{selectedUser?.name || selectedUser?.username}</span>
-                                </DrawerDescription>
+                <DrawerContent className="h-[auto] max-h-[90vh] rounded-t-3xl">
+                    <div className="mx-auto w-full max-w-xl flex flex-col h-full bg-white/60 backdrop-blur-md pb-8">
+                        <DrawerHeader className="pb-6 pt-8 border-b border-gray-100 bg-white/40 text-left px-6">
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center text-primary-dark shadow-inner border border-gold/10">
+                                    <ShieldCheck className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <DrawerTitle className="text-2xl font-serif font-bold text-primary-dark mb-1">Manage Access</DrawerTitle>
+                                    <DrawerDescription className="text-sm font-medium text-gray-500">
+                                        Assign modules for <span className="font-bold text-gray-800">{selectedUser?.name || selectedUser?.username}</span>
+                                    </DrawerDescription>
+                                </div>
                             </div>
                         </DrawerHeader>
 
-                        <div className="p-6 overflow-y-auto max-h-[60vh]">
+                        <div className="p-6 overflow-y-auto max-h-[60vh] scrollbar-hide">
                             {selectedUser && (
                                 <UserModuleEditor
                                     userId={selectedUser.id}

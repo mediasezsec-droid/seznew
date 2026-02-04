@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState } from "react";
 import { createAttendanceSession, stopAttendanceSession } from "@/app/actions/attendance";
 import { OrnateCard, GoldenButton, OrnateHeading } from "@/components/ui/premium-components";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import toast from "react-hot-toast";
 import { addHours, format, isSameDay } from "date-fns";
-import { Calendar, Clock, Play, StopCircle, CheckCircle2, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Play, StopCircle, CheckCircle2, AlertCircle, Hourglass, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AttendanceAdmin({ activeSessions, events }: { activeSessions: any[], events: any[] }) {
@@ -31,6 +30,7 @@ export function AttendanceAdmin({ activeSessions, events }: { activeSessions: an
         const res = await createAttendanceSession(event.id, start, end);
         if (res.success) {
             toast.success(`Session started for ${event.name}`);
+            // Optimistic update or reload could happen here, simpler to reload for now
             window.location.reload();
         } else {
             toast.error(res.error || "Failed to start session");
@@ -39,13 +39,14 @@ export function AttendanceAdmin({ activeSessions, events }: { activeSessions: an
     };
 
     const handleStop = async (eventId: string) => {
-        if (!confirm("Stop this attendance session? users will no longer be able to mark attendance.")) return;
+        if (!confirm("Stop this attendance session? Users will no longer be able to mark attendance.")) return;
         setProcessingId(eventId);
         const res = await stopAttendanceSession(eventId);
         if (res.success) {
             toast.success("Attendance session closed.");
             window.location.reload();
         } else {
+            toast.error("Failed to stop session");
             setProcessingId(null);
         }
     };
@@ -55,126 +56,151 @@ export function AttendanceAdmin({ activeSessions, events }: { activeSessions: an
     const availableEvents = events.filter(e => !activeEventIds.includes(e.id));
 
     return (
-        <div className="space-y-10">
-            <OrnateHeading title="Attendance Manager" subtitle="Control active attendance sessions and upcoming events" />
+        <div className="space-y-8 pb-12">
+            <OrnateHeading
+                title="Attendance Manager"
+                subtitle="Control Active Sessions & Upcoming Events"
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* LEFT COLUMN: Active Sessions */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-green-100 rounded-full text-green-700">
-                            <CheckCircle2 className="w-5 h-5" />
+                    <OrnateCard className="bg-white/90 border-emerald-100/50 min-h-[400px] p-0 overflow-hidden">
+                        <div className="p-6 border-b border-gray-100/80 bg-gray-50/50">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white rounded-2xl text-emerald-600 shadow-sm border border-emerald-100">
+                                    <Hourglass className="w-6 h-6 animate-pulse" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold font-serif text-primary-dark">Active Sessions</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Currently tracking attendance for these events</p>
+                                </div>
+                                <Badge className="ml-auto bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200 shadow-sm px-3 py-1 text-sm">
+                                    {activeSessions.length} Active
+                                </Badge>
+                            </div>
                         </div>
-                        <h3 className="text-xl font-bold font-serif text-primary-dark">Active Sessions ({activeSessions.length})</h3>
-                    </div>
 
-                    {activeSessions.length === 0 ? (
-                        <div className="p-8 border-2 border-dashed border-neutral-200 rounded-2xl bg-white/50 text-center">
-                            <p className="text-neutral-400 font-medium">No sessions currently active.</p>
-                            <p className="text-xs text-neutral-400 mt-1">Select an event from the list to start tracking.</p>
-                        </div>
-                    ) : (
-                        <div className="grid gap-4">
-                            {activeSessions.map(session => (
-                                <div key={session.id} className="group relative bg-white border border-green-100 shadow-sm hover:shadow-md rounded-xl overflow-hidden transition-all">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-green-500" />
-                                    <div className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h4 className="font-bold text-lg text-primary-dark">{session.event.name}</h4>
-                                                <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200 shadow-none">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5 animate-pulse" />
-                                                    LIVE
-                                                </Badge>
-                                            </div>
-                                            <div className="flex items-center gap-4 text-sm text-neutral-500">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Calendar className="w-3.5 h-3.5" />
-                                                    {format(new Date(session.startTime), 'MMM d, yyyy')}
-                                                </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                    {format(new Date(session.startTime), 'h:mm a')} - {format(new Date(session.endTime), 'h:mm a')}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => handleStop(session.eventId)}
-                                            disabled={processingId === session.eventId}
-                                            className="w-full md:w-auto shadow-sm hover:bg-red-600"
-                                        >
-                                            <StopCircle className="w-4 h-4 mr-2" />
-                                            Stop Session
-                                        </Button>
+                        <div className="p-6">
+                            {activeSessions.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 opacity-70">
+                                    <div className="p-6 bg-gray-50 rounded-full border border-gray-100">
+                                        <Clock className="w-10 h-10 text-gray-300" />
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-600 font-medium text-lg">No sessions active</p>
+                                        <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">Select an upcoming event to start tracking.</p>
                                     </div>
                                 </div>
-                            ))}
+                            ) : (
+                                <div className="grid gap-5">
+                                    {activeSessions.map(session => (
+                                        <div key={session.id} className="group relative bg-white border border-emerald-100/60 shadow-sm hover:shadow-md rounded-2xl overflow-hidden transition-all duration-300 ring-1 ring-black/5">
+                                            <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-emerald-400 to-emerald-600" />
+
+                                            <div className="p-5 pl-7 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <h4 className="font-serif font-bold text-xl text-gray-800 group-hover:text-primary-dark transition-colors">{session.event.name}</h4>
+                                                        <Badge className="bg-red-50 text-red-600 border-red-100 shadow-none px-2 py-0.5 text-[10px] animate-pulse font-bold tracking-wider">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5" />
+                                                            LIVE
+                                                        </Badge>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+                                                        <div className="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
+                                                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                                                            <span>{format(new Date(session.startTime), 'MMM d, yyyy')}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
+                                                            <Clock className="w-3.5 h-3.5 text-gray-400" />
+                                                            <span className="font-mono text-xs">
+                                                                {format(new Date(session.startTime), 'h:mm a')} - {format(new Date(session.endTime), 'h:mm a')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => handleStop(session.eventId)}
+                                                    disabled={processingId === session.eventId}
+                                                    className="w-full md:w-auto border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 shadow-sm transition-all h-10 px-6 rounded-xl"
+                                                >
+                                                    {processingId === session.eventId ? (
+                                                        <span className="animate-spin mr-2">⏳</span>
+                                                    ) : (
+                                                        <StopCircle className="w-4 h-4 mr-2" />
+                                                    )}
+                                                    End Session
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </OrnateCard>
                 </div>
 
                 {/* RIGHT COLUMN: Upcoming Events */}
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="p-2 bg-gold/10 rounded-full text-gold">
-                            <Calendar className="w-5 h-5" />
+                    <OrnateCard className="bg-white/90 border-gold/20 flex flex-col p-0 overflow-hidden shadow-lg h-[600px]">
+                        <div className="p-5 border-b border-gold/10 bg-gradient-to-br from-gold/5 to-transparent">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white rounded-lg text-primary-dark shadow-sm ring-1 ring-gold/20">
+                                    <Calendar className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-lg font-serif font-bold text-gray-800">Upcoming Events</h3>
+                            </div>
                         </div>
-                        <h3 className="text-xl font-bold font-serif text-primary-dark">Upcoming Events</h3>
-                    </div>
 
-                    <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
-                        <div className="max-h-[600px] overflow-y-auto custom-scrollbar p-2 space-y-2">
+                        <div className="overflow-y-auto custom-scrollbar p-4 space-y-3 flex-grow bg-gray-50/30">
                             {availableEvents.length === 0 ? (
-                                <div className="p-8 text-center text-neutral-400">
-                                    <p>No upcoming events found.</p>
+                                <div className="p-8 text-center text-gray-400 bg-white rounded-xl border border-dashed border-gray-200 mt-4">
+                                    <p className="text-sm font-medium">No details found</p>
                                 </div>
                             ) : availableEvents.map((event) => (
                                 <div
                                     key={event.id}
-                                    className="p-3 rounded-xl border border-transparent hover:border-gold/20 hover:bg-neutral-50 transition-all group"
+                                    className="p-4 rounded-xl border border-gray-100 bg-white hover:border-gold/30 hover:shadow-md transition-all group flex flex-row items-center justify-between gap-4"
                                 >
-                                    <div className="flex justify-between items-start gap-3">
-                                        <div className="flex-1 min-w-0">
-                                            <h5 className="font-bold text-neutral-800 text-sm truncate" title={event.name}>
-                                                {event.name}
-                                            </h5>
-                                            <div className="flex items-center gap-2 mt-1 text-xs text-neutral-500">
-                                                <span className={cn(
-                                                    "px-1.5 py-0.5 rounded font-medium",
-                                                    isSameDay(new Date(event.occasionDate), new Date())
-                                                        ? "bg-blue-50 text-blue-600"
-                                                        : "bg-neutral-100 text-neutral-500"
-                                                )}>
-                                                    {isSameDay(new Date(event.occasionDate), new Date()) ? "Today" : format(new Date(event.occasionDate), 'MMM d')}
-                                                </span>
-                                                {event.occasionTime && (
-                                                    <span className="flex items-center gap-0.5">
-                                                        <Clock className="w-3 h-3" />
-                                                        {event.occasionTime}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h5 className="font-bold text-gray-800 text-sm leading-tight mb-1.5 truncate text-wrap" title={event.name}>
+                                            {event.name}
+                                        </h5>
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="secondary" className={cn(
+                                                "text-[10px] px-1.5 py-0 rounded-md font-medium shadow-none border",
+                                                isSameDay(new Date(event.occasionDate), new Date())
+                                                    ? "bg-blue-50 text-blue-700 border-blue-100"
+                                                    : "bg-gray-50 text-gray-500 border-gray-100"
+                                            )}>
+                                                {isSameDay(new Date(event.occasionDate), new Date()) ? "Today" : format(new Date(event.occasionDate), 'MMM d')}
+                                            </Badge>
 
-                                        <GoldenButton
-                                            className="h-8 w-8 p-0 rounded-full shadow-none group-hover:shadow-md transition-all"
-                                            onClick={() => handleStartSession(event)}
-                                            disabled={processingId === event.id}
-                                            title="Activate Session"
-                                        >
-                                            <Play className="w-3.5 h-3.5 ml-0.5" />
-                                        </GoldenButton>
+                                            {event.occasionTime && (
+                                                <span className="text-[10px] text-gray-400 font-mono flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    {event.occasionTime}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    <GoldenButton
+                                        className="h-9 w-9 p-0 rounded-full shadow-sm hover:shadow-md flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-gold to-amber-400"
+                                        onClick={() => handleStartSession(event)}
+                                        disabled={processingId === event.id}
+                                        title="Start Session"
+                                    >
+                                        <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />
+                                    </GoldenButton>
                                 </div>
                             ))}
                         </div>
-                        <div className="p-3 bg-neutral-50 border-t border-neutral-100 text-[10px] text-neutral-400 text-center">
-                            Sorted by nearest date first
-                        </div>
-                    </div>
+                    </OrnateCard>
                 </div>
             </div>
         </div>

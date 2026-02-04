@@ -102,6 +102,7 @@ export async function getAllTransactions() {
 
   try {
     const transactions = await prisma.feeTransaction.findMany({
+      take: 100, // Limit to recent 100 transactions to prevent crash
       orderBy: { date: "desc" },
       include: {
         user: {
@@ -137,10 +138,10 @@ export async function getMemberFinancials() {
     // Fetch all users with their fee records and event contributions
     const users = await prisma.user.findMany({
       where: {
-        role: {
-          not: "ADMIN", // Exclude admins from financial list if preferred, or remove this filter
-        },
+        // Removed role filter to include everyone including admins
       },
+      take: 500, // Limit to 500 to prevent Vercel timeout/payload limits
+      orderBy: { name: "asc" },
       select: {
         id: true,
         username: true,
@@ -182,8 +183,12 @@ export async function getMemberFinancials() {
       };
     });
 
-    // Sort: Highest outstanding balance first
-    members.sort((a, b) => b.balance - a.balance);
+    // Sort: Alphabetically by Name (A-Z)
+    members.sort((a, b) => {
+      const nameA = a.name || a.username;
+      const nameB = b.name || b.username;
+      return nameA.localeCompare(nameB);
+    });
 
     return { success: true, data: members };
   } catch (error) {

@@ -139,11 +139,13 @@ export async function getNavModules(): Promise<ModuleInfo[]> {
     return allModules.map((m) => ({
       id: m.id,
       name: m.name,
-      links: m.links.map((link) => ({
-        id: link.id,
-        path: link.path,
-        label: link.label,
-      })),
+      links: m.links
+        .filter((link) => !link.path.includes("[")) // Filter out dynamic routes for navbar
+        .map((link) => ({
+          id: link.id,
+          path: link.path,
+          label: link.label,
+        })),
       icon: m.icon,
     }));
   }

@@ -5,7 +5,7 @@ import { AttendanceAdmin } from "./AttendanceAdmin";
 
 export default async function AttendanceAdminPage() {
     const { authorized } = await requireAccess("/admin/attendance");
-    if (!authorized) redirect("/");
+    if (!authorized) redirect("/unauthorized");
 
     const activeRes = await getActiveSessions();
     const eventsRes = await getCloneableEvents();

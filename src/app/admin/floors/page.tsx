@@ -5,7 +5,7 @@ import { FloorManager } from "./FloorManager";
 
 export default async function FloorsPage() {
     const { authorized } = await requireAccess("/admin/floors");
-    if (!authorized) redirect("/");
+    if (!authorized) redirect("/unauthorized");
 
     const floorsResult = await getAllFloors();
     const floors = floorsResult.success && floorsResult.data ? floorsResult.data : [];

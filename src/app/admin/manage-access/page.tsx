@@ -21,7 +21,7 @@ export default async function ManageAccessPage() {
     const canAccess = isAdmin || await hasModuleAccess(userId, "/admin/manage-access");
 
     if (!canAccess) {
-        redirect("/login");
+        redirect("/unauthorized");
     }
 
     // Get all users except ADMIN (they have full access)

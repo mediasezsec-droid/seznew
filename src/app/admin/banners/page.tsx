@@ -26,7 +26,7 @@ export default async function BannerAdminPage() {
     const canAccess = isAdmin || await hasModuleAccess(userId, "/admin/banners");
 
     if (!canAccess) {
-        redirect("/login");
+        redirect("/unauthorized");
     }
 
     const banners = await prisma.banner.findMany({

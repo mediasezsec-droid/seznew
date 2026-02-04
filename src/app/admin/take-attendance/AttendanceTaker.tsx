@@ -5,7 +5,7 @@ import { getFloorMembersForUser, markUserAttendance, getAttendanceStatusForEvent
 import { OrnateCard, OrnateHeading } from "@/components/ui/premium-components";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Circle, Search, Users } from "lucide-react";
+import { CheckCircle2, Circle, Search, Users, MapPin, Calendar, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 
 type SimpleUser = { id: string; name: string | null; its: string | null; username: string };
@@ -74,38 +74,57 @@ export function AttendanceTaker({
         m.its?.includes(search))
     );
 
+    const presentCount = members.filter(m => attendanceMap[m.id]).length;
+
     if (!activeEvent) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
-                <OrnateCard className="p-8 max-w-md">
-                    <h2 className="text-xl font-bold font-serif text-gray-400">No Active Event</h2>
-                    <p className="text-gray-500 mt-2">Attendance is currently closed. Please wait for an event to start.</p>
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 space-y-6">
+                <OrnateCard className="p-10 max-w-md w-full flex flex-col items-center bg-white/60 backdrop-blur-md">
+                    <div className="bg-gray-100 p-4 rounded-full mb-4">
+                        <Calendar className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h2 className="text-2xl font-serif font-bold text-gray-600 mb-2">No Active Session</h2>
+                    <p className="text-gray-500">Attendance is currently closed. Please wait for an admin to start a session.</p>
                 </OrnateCard>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 max-w-lg mx-auto pb-20">
-            <OrnateHeading
-                title={activeEvent.name}
-                subtitle="Mark Attendance"
-            />
+        <div className="max-w-xl mx-auto pb-24 px-2">
 
-            <div className="sticky top-20 z-10 bg-background-light pt-2 pb-4">
+            {/* Header Card */}
+            <OrnateCard className="mb-6 p-6 bg-gradient-to-br from-white to-gold/5 border-gold/20">
+                <div className="text-center space-y-2">
+                    <div className="inline-flex items-center justify-center p-2 bg-gold/10 rounded-full mb-2">
+                        <Clock className="w-5 h-5 text-gold-dark" />
+                    </div>
+                    <h1 className="text-3xl font-serif font-bold text-primary-dark">{activeEvent.name}</h1>
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                        <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold text-xs uppercase tracking-wider">Active Now</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{presentCount} / {members.length} Present</span>
+                    </div>
+                </div>
+            </OrnateCard>
+
+            <div className="sticky top-[4.5rem] z-30 pt-2 pb-4 bg-transparent backdrop-blur-xl -mx-4 px-4 border-b border-white/50 mb-4 rounded-b-2xl shadow-sm transition-all">
                 <div className="relative">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                         placeholder="Search name or ITS..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9 bg-white shadow-sm border-gold/20"
+                        className="pl-10 h-10 bg-white/90 border-gray-200 focus:border-gold shadow-sm rounded-xl text-base"
                     />
                 </div>
             </div>
 
             {loading ? (
-                <div className="text-center py-10">Loading members...</div>
+                <div className="text-center py-12">
+                    <div className="animate-spin w-8 h-8 border-4 border-gold border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p className="text-gray-400">Loading members...</p>
+                </div>
             ) : (
                 <div className="space-y-3">
                     {filteredMembers.map(member => {
@@ -115,30 +134,41 @@ export function AttendanceTaker({
                                 key={member.id}
                                 onClick={() => toggleAttendance(member.id)}
                                 className={`
-                                    flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all duration-200
+                                    flex items-center justify-between p-4 rounded-xl border-b-2 cursor-pointer transition-all duration-200 select-none
                                     ${isPresent
-                                        ? "bg-green-50 border-green-200 shadow-md transform scale-[1.01]"
-                                        : "bg-white border-gold/10 hover:bg-gold/5"
+                                        ? "bg-gradient-to-r from-emerald-50 to-white border-emerald-200 shadow-md transform scale-[1.01]"
+                                        : "bg-white border-gray-100/50 hover:bg-gray-50 active:scale-[0.99] shadow-sm"
                                     }
                                 `}
                             >
-                                <div>
-                                    <h4 className={`font-bold ${isPresent ? "text-green-800" : "text-gray-800"}`}>
-                                        {member.name || member.username}
-                                    </h4>
-                                    <p className="text-xs text-gray-500">{member.its || "No ITS"}</p>
+                                <div className="flex items-center gap-3">
+                                    <div className={`
+                                        w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border
+                                        ${isPresent ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"}
+                                    `}>
+                                        {member.name?.charAt(0) || member.username.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h4 className={`font-bold text-base ${isPresent ? "text-emerald-900" : "text-gray-700"}`}>
+                                            {member.name || member.username}
+                                        </h4>
+                                        <p className="text-xs text-gray-400 font-mono tracking-wide">{member.its || "No ITS"}</p>
+                                    </div>
                                 </div>
+
                                 <div className={`
-                                    w-8 h-8 rounded-full flex items-center justify-center transition-colors
-                                    ${isPresent ? "bg-green-500 text-white" : "bg-gray-100 text-gray-300"}
+                                    transition-all duration-300
+                                    ${isPresent ? "text-emerald-500 scale-110" : "text-gray-200 scale-100"}
                                 `}>
-                                    {isPresent ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+                                    {isPresent ? <CheckCircle2 className="w-7 h-7 fill-emerald-50" /> : <Circle className="w-7 h-7" />}
                                 </div>
                             </div>
                         );
                     })}
                     {filteredMembers.length === 0 && (
-                        <p className="text-center text-gray-500">No members found.</p>
+                        <div className="text-center py-12 text-gray-400 bg-white/50 rounded-xl border border-dashed border-gray-200">
+                            No members found matching "{search}"
+                        </div>
                     )}
                 </div>
             )}

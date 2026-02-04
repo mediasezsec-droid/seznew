@@ -25,7 +25,7 @@ export default async function ModulesPage() {
     const canAccess = isAdmin || await hasModuleAccess(userId, "/admin/modules");
 
     if (!canAccess) {
-        redirect("/login");
+        redirect("/unauthorized");
     }
 
     const modules = await prisma.module.findMany({

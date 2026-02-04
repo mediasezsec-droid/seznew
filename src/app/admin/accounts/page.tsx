@@ -23,14 +23,7 @@ export default async function AccountsPage() {
     // Here we use the access control utility
     const access = await requireAccess("/admin/accounts"); // Assuming this is the path
     if (!access.authorized) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-background-light">
-                <div className="text-center p-8">
-                    <h1 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h1>
-                    <p className="text-gray-600">You do not have permission to view the Accounts module.</p>
-                </div>
-            </div>
-        );
+        redirect("/unauthorized");
     }
 
     // 2. Fetch Data

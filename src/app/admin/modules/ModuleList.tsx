@@ -5,7 +5,7 @@ import { deleteModule, deleteModuleLink, addModuleLink, getModuleUsers, searchUs
 import { Trash2, Route, Users, Loader2, Plus, X, Link2, Monitor, Edit, UserPlus, Check } from "lucide-react";
 import { OrnateCard, GoldenButton } from "@/components/ui/premium-components";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import toast from "react-hot-toast";
@@ -245,21 +245,26 @@ function EditModuleDrawer({ module }: { module: Module }) {
                     <Edit className="w-4 h-4" />
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className="max-h-[85vh] bg-white/95 backdrop-blur-sm">
-                <DrawerHeader className="pb-6 border-b border-neutral-100 text-left">
-                    <DrawerTitle>Edit Module</DrawerTitle>
-                </DrawerHeader>
-                <div className="p-6">
-                    <ModuleForm
-                        initialData={{
-                            id: module.id,
-                            name: module.name,
-                            description: module.description || undefined,
-                            icon: module.icon || undefined,
-                            links: module.links.map(l => ({ path: l.path, label: l.label || "" }))
-                        }}
-                        onSuccess={() => setOpen(false)}
-                    />
+            <DrawerContent className="h-[auto] max-h-[85vh] rounded-t-3xl">
+                <div className="mx-auto w-full max-w-lg bg-white/60 backdrop-blur-md pb-8">
+                    <DrawerHeader className="pb-6 pt-8 border-b border-gray-100 text-left px-6">
+                        <DrawerTitle className="text-2xl font-serif font-bold text-primary-dark">Edit Module</DrawerTitle>
+                        <DrawerDescription className="text-sm text-gray-500">
+                            Update module details and configuration.
+                        </DrawerDescription>
+                    </DrawerHeader>
+                    <div className="p-6">
+                        <ModuleForm
+                            initialData={{
+                                id: module.id,
+                                name: module.name,
+                                description: module.description || undefined,
+                                icon: module.icon || undefined,
+                                links: module.links.map(l => ({ path: l.path, label: l.label || "" }))
+                            }}
+                            onSuccess={() => setOpen(false)}
+                        />
+                    </div>
                 </div>
             </DrawerContent>
         </Drawer>
@@ -320,106 +325,115 @@ function ManageAccessDrawer({ module }: { module: Module }) {
                     <UserPlus className="w-3.5 h-3.5 mr-1.5" /> Assign Users
                 </Button>
             </DrawerTrigger>
-            <DrawerContent className="max-h-[85vh] bg-white flex flex-col">
-                <DrawerHeader className="p-6 border-b border-neutral-100 bg-neutral-50/30 text-left">
-                    <DrawerTitle>Manage Access</DrawerTitle>
-                    <div className="flex items-center gap-3 mt-1">
-                        <div className="h-8 w-8 rounded-lg bg-gold/10 flex items-center justify-center text-primary-dark">
-                            <Monitor className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <p className="font-bold text-primary-dark">{module.name}</p>
-                            <p className="text-xs text-neutral-500 font-mono">{module.id}</p>
-                        </div>
-                    </div>
-                </DrawerHeader>
-
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    {/* Add User */}
-                    <div className="space-y-3 relative">
-                        <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Add User</label>
-                        <div className="relative">
-                            <Input
-                                placeholder="Search by name, username or ITS..."
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                className="pl-9 h-10 bg-neutral-50 border-neutral-200"
-                            />
-                            <div className="absolute left-3 top-3">
-                                <UserPlus className="w-4 h-4 text-gray-400" />
+            <DrawerContent className="h-[auto] max-h-[85vh] rounded-t-3xl">
+                <div className="mx-auto w-full max-w-xl h-full flex flex-col bg-white/60 backdrop-blur-md pb-8">
+                    <DrawerHeader className="p-6 pt-8 border-b border-gray-100 bg-white/40 text-left">
+                        <DrawerTitle className="text-2xl font-serif font-bold text-primary-dark mb-1">Manage Access</DrawerTitle>
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center text-primary-dark shadow-sm">
+                                <Monitor className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="font-bold text-gray-800 text-sm leading-tight">{module.name}</p>
+                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-wide">{module.id}</p>
                             </div>
                         </div>
-                        {searchResults.length > 0 && (
-                            <div className="absolute top-full left-0 right-0 z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto">
-                                {searchResults.map(u => (
-                                    <div
-                                        key={u.id}
-                                        className="p-3 hover:bg-gold/10 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0"
-                                        onClick={() => grant(u.id)}
-                                    >
-                                        <div>
-                                            <p className="text-sm font-bold text-neutral-800">{u.name || u.username}</p>
-                                            <p className="text-xs text-gray-500">{u.its}</p>
-                                        </div>
-                                        {users.find(existing => existing.id === u.id) ? (
-                                            <Badge variant="outline" className="text-xs text-green-600 bg-green-50 border-green-200">Assigned</Badge>
-                                        ) : (
-                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-gold">
-                                                <Plus className="w-4 h-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    </DrawerHeader>
 
-                    <div className="h-px bg-gray-100" />
-
-                    {/* Current Users */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Current Access</h4>
-                            <Badge variant="secondary" className="text-[10px]">{users.length} Users</Badge>
-                        </div>
-
-                        {loading ? (
-                            <div className="flex flex-col items-center justify-center py-12 space-y-3 text-neutral-400">
-                                <Loader2 className="w-8 h-8 animate-spin text-gold" />
-                                <span className="text-xs">Loading users...</span>
+                    <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                        {/* Add User */}
+                        <div className="space-y-3 relative">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <UserPlus className="w-3 h-3" /> Add User
+                            </label>
+                            <div className="relative group">
+                                <Input
+                                    placeholder="Search by name, username or ITS..."
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    className="pl-10 h-12 bg-white border-gray-200 focus:border-gold focus:ring-4 focus:ring-gold/10 rounded-xl transition-all shadow-sm group-hover:shadow-md"
+                                />
+                                <div className="absolute left-3 top-3.5">
+                                    <UserPlus className="w-5 h-5 text-gray-400 group-hover:text-gold transition-colors" />
+                                </div>
                             </div>
-                        ) : users.length === 0 ? (
-                            <div className="text-center py-12 bg-neutral-50 rounded-lg border border-dashed border-neutral-200">
-                                <Users className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
-                                <p className="text-sm text-neutral-500 font-medium">No users assigned yet</p>
-                                <p className="text-xs text-neutral-400">Search above to add users</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                {users.map(u => (
-                                    <div key={u.id} className="flex justify-between items-center p-3 rounded-lg border border-neutral-100 bg-white shadow-sm hover:border-gold/30 transition-all group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-primary/5 text-primary-dark border border-primary/10 flex items-center justify-center text-xs font-bold">
-                                                {u.name?.[0] || u.username?.[0]}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-neutral-800">{u.name || u.username}</p>
-                                                <p className="text-[10px] text-neutral-500 font-mono bg-neutral-100 inline-block px-1 rounded">{u.its}</p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            onClick={() => revoke(u.id)}
-                                            className="h-7 w-7 text-neutral-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                                            title="Revoke Access"
+                            {searchResults.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 z-50 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-2xl max-h-72 overflow-y-auto ring-1 ring-black/5 p-2">
+                                    {searchResults.map(u => (
+                                        <div
+                                            key={u.id}
+                                            className="p-3 hover:bg-gold/5 cursor-pointer flex justify-between items-center rounded-lg transition-colors group/item"
+                                            onClick={() => grant(u.id)}
                                         >
-                                            <X className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                ))}
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 group-hover/item:bg-gold/20 group-hover/item:text-gold-dark transition-colors">
+                                                    {u.name?.[0] || u.username?.[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-gray-800">{u.name || u.username}</p>
+                                                    <p className="text-[10px] text-gray-400 font-mono tracking-wide">{u.its}</p>
+                                                </div>
+                                            </div>
+                                            {users.find(existing => existing.id === u.id) ? (
+                                                <Badge variant="outline" className="text-[10px] text-green-600 bg-green-50 border-green-200 px-2 py-0.5">Assigned</Badge>
+                                            ) : (
+                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-300 hover:text-gold hover:bg-gold/10 rounded-full">
+                                                    <Plus className="w-5 h-5" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+                        {/* Current Users */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center px-1">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Current Access</h4>
+                                <Badge variant="secondary" className="text-[10px] bg-gray-100 text-gray-600 font-bold px-2.5 py-1 rounded-lg border border-gray-200">{users.length} Users</Badge>
                             </div>
-                        )}
+
+                            {loading ? (
+                                <div className="flex flex-col items-center justify-center py-12 space-y-4 text-gray-300">
+                                    <Loader2 className="w-8 h-8 animate-spin text-gold" />
+                                    <span className="text-xs font-medium uppercase tracking-widest">Loading users...</span>
+                                </div>
+                            ) : users.length === 0 ? (
+                                <div className="text-center py-12 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 group hover:border-gold/30 transition-colors">
+                                    <Users className="w-10 h-10 text-gray-200 mx-auto mb-3 group-hover:text-gold/50 transition-colors" />
+                                    <p className="text-sm text-gray-500 font-bold">No users assigned yet</p>
+                                    <p className="text-xs text-gray-400 mt-1">Search above to add people to this module</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-2">
+                                    {users.map(u => (
+                                        <div key={u.id} className="flex justify-between items-center p-3 pl-4 rounded-xl border border-transparent bg-white shadow-sm hover:border-gold/30 hover:shadow-md transition-all group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border border-white shadow-sm flex items-center justify-center text-xs font-bold ring-2 ring-transparent group-hover:ring-gold/10 transition-all">
+                                                    {u.name?.[0] || u.username?.[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-gray-800">{u.name || u.username}</p>
+                                                    <p className="text-[10px] text-gray-400 font-mono tracking-wide bg-gray-50 px-1.5 py-0.5 rounded-md inline-block mt-0.5">{u.its}</p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={() => revoke(u.id)}
+                                                className="h-8 w-8 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100"
+                                                title="Revoke Access"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </DrawerContent>

@@ -79,6 +79,7 @@ export async function assignUserToFloor(
       where: {
         OR: [{ its: identifier }, { username: identifier }],
       },
+      select: { id: true, name: true, username: true, its: true },
     });
 
     if (!user) {
@@ -106,7 +107,7 @@ export async function assignUserToFloor(
     revalidatePath("/admin/floors");
     return {
       success: true,
-      message: `Added ${user.name || user.username} as ${role}`,
+      user, // Return the full user object for optimistic UI
     };
   } catch (error) {
     console.error("Error assigning user:", error);

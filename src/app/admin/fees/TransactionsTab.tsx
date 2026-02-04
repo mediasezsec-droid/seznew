@@ -100,7 +100,7 @@ export function TransactionsTab({ transactions }: { transactions: Transaction[] 
                                         <div className="text-xs text-gray-500 font-mono">{tx.user.username}</div>
                                     </td>
                                     <td className="px-6 py-4 font-medium text-green-700">
-                                        ₹{tx.amount}
+                                        ₹{tx.amount.toLocaleString('en-IN')}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">

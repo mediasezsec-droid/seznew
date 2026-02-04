@@ -1,4 +1,5 @@
 import { getMonthFeeStatus, getAllEventContributions, getAllTransactions } from "@/app/actions/fees";
+import { prisma } from "@/lib/db";
 import { requireAccess } from "@/lib/access-control";
 import { redirect } from "next/navigation";
 import { FeesTable } from "./FeesTable";
@@ -13,8 +14,8 @@ export default async function AdminFeesPage({
 }: {
     searchParams: Promise<{ month?: string; year?: string }>;
 }) {
-    const { authorized } = await requireAccess("/admin/fees");
-    if (!authorized) redirect("/");
+    const { authorized, userId } = await requireAccess("/admin/fees");
+    if (!authorized) redirect("/unauthorized");
 
     const resolvedParams = await searchParams;
     const currentDate = new Date();
@@ -22,15 +23,19 @@ export default async function AdminFeesPage({
     const year = resolvedParams.year ? parseInt(resolvedParams.year) : currentDate.getFullYear();
 
     // Fetch all data in parallel
-    const [monthStatus, eventsResult, transactionsResult] = await Promise.all([
+    const [monthStatus, eventsResult, transactionsResult, adminUser] = await Promise.all([
         getMonthFeeStatus(month, year),
         getAllEventContributions(),
-        getAllTransactions()
+        getAllTransactions(),
+        userId
+            ? prisma.user.findUnique({ where: { id: userId }, select: { name: true } })
+            : Promise.resolve(null)
     ]);
 
     const monthData = monthStatus.success && monthStatus.data ? monthStatus.data : [];
     const eventsData = eventsResult.success && eventsResult.data ? eventsResult.data : [];
     const txData = transactionsResult.success && transactionsResult.data ? transactionsResult.data : [];
+    const adminName = adminUser?.name || "Admin";
 
     // Calculate stats (Monthly)
     const totalDue = monthData.reduce((sum, item) => sum + (item.record ? item.record.amount : 0), 0);
@@ -55,7 +60,6 @@ export default async function AdminFeesPage({
 
                     <TabsContent value="monthly" className="space-y-6">
                         {/* Stats Cards */}
-// Update formatting in the main component
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <StatCard label="Total Due" value={`₹${totalDue.toLocaleString('en-IN')}`} />
                             <StatCard label="Collected (Month)" value={`₹${totalCollected.toLocaleString('en-IN')}`} />
@@ -65,7 +69,7 @@ export default async function AdminFeesPage({
                         <FeeControls month={month} year={year} />
 
                         <OrnateCard className="p-0 overflow-hidden border border-gold/20 shadow-2xl bg-white/90 backdrop-blur-xl">
-                            <FeesTable data={monthData} month={month} year={year} />
+                            <FeesTable data={monthData} month={month} year={year} adminName={adminName} />
                         </OrnateCard>
                     </TabsContent>
 

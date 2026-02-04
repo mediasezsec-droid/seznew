@@ -116,50 +116,96 @@ export async function bulkCreateUsers(
   let failed = 0;
   const errors: string[] = [];
 
+  // 1. Batch Check for Duplicates (ITS and Username)
+  const incomingIts = users.map((u) => u.its).filter(Boolean) as string[];
+  const incomingUsernames = users.map((u) => u.username.toString().trim());
+
+  const [existingUsernames, existingIts] = await Promise.all([
+    prisma.user.findMany({
+      where: { username: { in: incomingUsernames } },
+      select: { username: true },
+    }),
+    prisma.user.findMany({
+      where: { its: { in: incomingIts } },
+      select: { its: true },
+    }),
+  ]);
+
+  const existingUsernameSet = new Set(existingUsernames.map((u) => u.username));
+  const existingItsSet = new Set(existingIts.map((u) => u.its));
+
+  // 2. Filter out explicit duplicates immediately to save processing
+  // (We still catch race conditions in the loop, but this catches 99%)
+  const toCreate = [];
+
   for (const user of users) {
-    try {
-      if (!user.username || !user.password) {
-        failed++;
-        errors.push(`Missing username or password for row`);
-        continue;
-      }
+    const cleanUsername = user.username.toString().trim();
+    const cleanIts = user.its?.toString().trim();
 
-      const hashedPassword = await bcrypt.hash(user.password, 10);
-      const role = [
-        "ADMIN",
-        "ADMIN_CUSTOM",
-        "MANAGER",
-        "STAFF",
-        "WATCHER",
-        "USER",
-      ].includes(user.role || "")
-        ? (user.role as Role)
-        : "USER";
-
-      await prisma.user.create({
-        data: {
-          username: user.username.toString().trim(),
-          password: hashedPassword,
-          name: user.name?.toString().trim() || null,
-          email: user.email?.toString().trim() || null,
-          mobile: user.mobile?.toString().trim() || null,
-          role,
-          its: user.its?.toString().trim() || null,
-        },
-      });
-      created++;
-    } catch (error: any) {
+    if (existingUsernameSet.has(cleanUsername)) {
       failed++;
-      if (error.code === "P2002") {
-        if (error.meta?.target?.includes("its")) {
-          errors.push(`ITS "${user.its}" already exists`);
-        } else {
-          errors.push(`Username "${user.username}" already exists`);
-        }
-      } else {
-        errors.push(`Error for "${user.username}": ${error.message}`);
-      }
+      errors.push(`Username "${cleanUsername}" already exists`);
+      continue;
     }
+    if (cleanIts && existingItsSet.has(cleanIts)) {
+      failed++;
+      errors.push(`ITS "${cleanIts}" already exists`);
+      continue;
+    }
+    if (!user.username || !user.password) {
+      failed++;
+      errors.push(`Missing username or password for row`);
+      continue;
+    }
+
+    toCreate.push({ ...user, cleanUsername, cleanIts });
+  }
+
+  // 3. Process remaining users in Chunks (Simulated Concurrency of 10)
+  const CHUNK_SIZE = 10;
+  for (let i = 0; i < toCreate.length; i += CHUNK_SIZE) {
+    const chunk = toCreate.slice(i, i + CHUNK_SIZE);
+
+    await Promise.all(
+      chunk.map(async (user) => {
+        try {
+          const hashedPassword = await bcrypt.hash(user.password, 10);
+          const role = [
+            "ADMIN",
+            "ADMIN_CUSTOM",
+            "MANAGER",
+            "STAFF",
+            "WATCHER",
+            "USER",
+          ].includes(user.role || "")
+            ? (user.role as Role)
+            : "USER";
+
+          await prisma.user.create({
+            data: {
+              username: user.cleanUsername,
+              password: hashedPassword,
+              name: user.name?.toString().trim() || null,
+              email: user.email?.toString().trim() || null,
+              mobile: user.mobile?.toString().trim() || null,
+              role,
+              its: user.cleanIts || null,
+            },
+          });
+          created++;
+        } catch (error: any) {
+          failed++;
+          if (error.code === "P2002") {
+            // Race condition fallback
+            errors.push(
+              `Duplicate detected during creation for ${user.cleanUsername}`,
+            );
+          } else {
+            errors.push(`Error for "${user.cleanUsername}": ${error.message}`);
+          }
+        }
+      }),
+    );
   }
 
   revalidatePath("/admin/users");

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { OrnateHeading, OrnateCard } from "@/components/ui/premium-components";
 import { ProfileForm } from "./ProfileForm";
 import { getUserFees, getUserTransactions, getUserEventContributions } from "@/app/actions/fees";
+import { getUserAttendance } from "@/app/actions/attendance";
 import { FeeList } from "@/app/fees/FeeList";
 import { TransactionHistory } from "@/app/fees/TransactionHistory";
 import { UnifiedPaymentDrawer } from "@/app/fees/UnifiedPaymentDrawer";
@@ -19,8 +20,10 @@ export default async function ProfilePage() {
         redirect("/login");
     }
 
+    const userId = (session.user as any).id;
+
     const user = await prisma.user.findUnique({
-        where: { id: (session.user as any).id },
+        where: { id: userId },
         select: {
             id: true,
             username: true,
@@ -37,15 +40,16 @@ export default async function ProfilePage() {
     }
 
     const userModules = await prisma.userModuleAccess.findMany({
-        where: { userId: (session.user as any).id },
+        where: { userId },
         include: { module: true }
     });
 
-    // Fetch Fee Data
-    const [feesResult, transactionsResult, eventsResult] = await Promise.all([
-        getUserFees((session.user as any).id),
-        getUserTransactions((session.user as any).id),
-        getUserEventContributions((session.user as any).id)
+    // Fetch Fee & Attendance Data
+    const [feesResult, transactionsResult, eventsResult, attendanceResult] = await Promise.all([
+        getUserFees(userId),
+        getUserTransactions(userId),
+        getUserEventContributions(userId),
+        getUserAttendance(userId) // New Fetch
     ]);
 
     // Ensure we handle undefined data gracefully
@@ -53,6 +57,7 @@ export default async function ProfilePage() {
     // @ts-ignore - Transaction type complexity
     const transactions = (transactionsResult.success && transactionsResult.data) ? transactionsResult.data : [];
     const events = (eventsResult.success && eventsResult.data) ? eventsResult.data : [];
+    const attendanceHistory = (attendanceResult.success && attendanceResult.data) ? attendanceResult.data : [];
 
     // Filter pending/partial items
     const pendingFees = fees.filter(f => f.status !== "PAID");
@@ -68,6 +73,7 @@ export default async function ProfilePage() {
                 events={events}
                 pendingFees={pendingFees}
                 pendingEvents={pendingEvents}
+                attendanceHistory={attendanceHistory}
             />
         </div>
     );

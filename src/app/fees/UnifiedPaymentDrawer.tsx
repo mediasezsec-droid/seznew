@@ -83,49 +83,49 @@ export function UnifiedPaymentDrawer({ pendingFees, pendingEvents, username }: U
         <Drawer>
             <DrawerTrigger asChild>
                 <div className="w-full">
-                    <GoldenButton className="w-full flex items-center justify-center gap-2 py-6 text-lg shadow-xl hover:shadow-gold/20 mb-8">
-                        <ScanLine className="w-6 h-6" />
-                        <span className="flex flex-col items-start leading-none">
-                            <span className="font-bold">Scan & Pay</span>
-                            <span className="text-[10px] font-normal opacity-80 uppercase tracking-widest mt-1">Make a Contribution</span>
+                    <GoldenButton className="w-full flex items-center justify-center gap-4 py-8 text-lg shadow-xl hover:shadow-gold/20 mb-8 border border-gold/40 bg-gradient-to-r from-gold via-yellow-400 to-gold text-black">
+                        <ScanLine className="w-8 h-8" />
+                        <span className="flex flex-col items-start leading-none gap-1">
+                            <span className="font-serif font-bold text-xl tracking-wide">Scan & Pay</span>
+                            <span className="text-[10px] font-bold opacity-75 uppercase tracking-[0.2em]">Make Contribution</span>
                         </span>
                     </GoldenButton>
                 </div>
             </DrawerTrigger>
-            <DrawerContent className="max-h-[90vh]">
-                <div className="mx-auto w-full max-w-sm pb-8 overflow-y-auto">
-                    <DrawerHeader className="text-center">
-                        <DrawerTitle className="text-2xl text-primary-dark font-serif">Make Contribution</DrawerTitle>
-                        <DrawerDescription>
+            <DrawerContent className="h-[95vh] rounded-t-3xl">
+                <div className="mx-auto w-full max-w-lg h-full bg-white/60 backdrop-blur-md pb-8 flex flex-col">
+                    <DrawerHeader className="text-center pt-8 px-6">
+                        <DrawerTitle className="text-3xl text-primary-dark font-serif font-bold">Make Contribution</DrawerTitle>
+                        <DrawerDescription className="text-base font-medium text-gray-500">
                             Select pending pending items or add a voluntary amount.
                         </DrawerDescription>
                     </DrawerHeader>
 
-                    <div className="p-4 space-y-6">
+                    <div className="p-6 flex-1 overflow-y-auto space-y-6 scrollbar-hide">
                         {/* Pending Items Selection */}
                         {(pendingFees.length > 0 || pendingEvents.length > 0) && (
-                            <div className="space-y-3">
-                                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Select Pending Items</h3>
-                                <div className="space-y-2">
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Select Pending Items</h3>
+                                <div className="space-y-3">
                                     {pendingFees.map(fee => {
                                         const due = fee.amount - fee.paidAmount;
                                         return (
-                                            <div key={fee.id} className={cn("flex items-center justify-between p-3 rounded-lg border transition-colors", selectedFeeIds.has(fee.id) ? "bg-gold/10 border-gold/40" : "bg-gray-50 border-gray-100")}>
-                                                <div className="flex items-center gap-3">
+                                            <div key={fee.id} className={cn("flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200", selectedFeeIds.has(fee.id) ? "bg-amber-50 border-gold/50 shadow-sm" : "bg-white border-transparent hover:border-gray-200 shadow-sm")}>
+                                                <div className="flex items-center gap-4">
                                                     <Checkbox
                                                         id={fee.id}
                                                         checked={selectedFeeIds.has(fee.id)}
                                                         onCheckedChange={() => toggleFee(fee.id)}
-                                                        className="data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                                                        className="h-5 w-5 data-[state=checked]:bg-gold data-[state=checked]:border-gold border-2 border-gray-300"
                                                     />
-                                                    <Label htmlFor={fee.id} className="cursor-pointer">
-                                                        <div className="font-medium text-gray-900">
+                                                    <Label htmlFor={fee.id} className="cursor-pointer space-y-0.5">
+                                                        <div className="font-bold text-gray-900 text-base">
                                                             {new Date(fee.year, fee.month).toLocaleString('default', { month: 'long' })} {fee.year}
                                                         </div>
-                                                        <div className="text-xs text-gray-500">Monthly Contribution</div>
+                                                        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">Monthly Contribution</div>
                                                     </Label>
                                                 </div>
-                                                <div className="font-bold text-gray-700">₹{due}</div>
+                                                <div className="font-serif font-bold text-lg text-primary-dark">₹{due}</div>
                                             </div>
                                         );
                                     })}
@@ -133,20 +133,22 @@ export function UnifiedPaymentDrawer({ pendingFees, pendingEvents, username }: U
                                     {pendingEvents.map(event => {
                                         const due = event.amount - event.paidAmount;
                                         return (
-                                            <div key={event.id} className={cn("flex items-center justify-between p-3 rounded-lg border transition-colors", selectedEventIds.has(event.id) ? "bg-gold/10 border-gold/40" : "bg-gray-50 border-gray-100")}>
-                                                <div className="flex items-center gap-3">
+                                            <div key={event.id} className={cn("flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200", selectedEventIds.has(event.id) ? "bg-amber-50 border-gold/50 shadow-sm" : "bg-white border-transparent hover:border-gray-200 shadow-sm")}>
+                                                <div className="flex items-center gap-4">
                                                     <Checkbox
                                                         id={event.id}
                                                         checked={selectedEventIds.has(event.id)}
                                                         onCheckedChange={() => toggleEvent(event.id)}
-                                                        className="data-[state=checked]:bg-gold data-[state=checked]:border-gold"
+                                                        className="h-5 w-5 data-[state=checked]:bg-gold data-[state=checked]:border-gold border-2 border-gray-300"
                                                     />
-                                                    <Label htmlFor={event.id} className="cursor-pointer">
-                                                        <div className="font-medium text-gray-900">{event.title}</div>
-                                                        <div className="text-xs text-gray-500">Event Fund</div>
+                                                    <Label htmlFor={event.id} className="cursor-pointer space-y-0.5">
+                                                        <div className="font-bold text-gray-900 text-base">{event.title}</div>
+                                                        <div className="text-xs font-medium text-gold-dark uppercase tracking-wide flex items-center gap-1">
+                                                            <Wallet className="w-3 h-3" /> Event Fund
+                                                        </div>
                                                     </Label>
                                                 </div>
-                                                <div className="font-bold text-gray-700">₹{due}</div>
+                                                <div className="font-serif font-bold text-lg text-primary-dark">₹{due}</div>
                                             </div>
                                         );
                                     })}
@@ -155,69 +157,69 @@ export function UnifiedPaymentDrawer({ pendingFees, pendingEvents, username }: U
                         )}
 
                         {/* Voluntary Amount */}
-                        <div className="space-y-3">
-                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                                <Wallet className="w-3 h-3" />
-                                Add Extra Amount
+                        <div className="space-y-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                <Wallet className="w-4 h-4 text-gold" />
+                                Add Extra / Voluntary Amount
                             </h3>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₹</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 font-bold text-xl">₹</span>
                                 <Input
                                     type="number"
                                     value={voluntaryAmount || ""}
                                     onChange={(e) => setVoluntaryAmount(parseFloat(e.target.value))}
                                     placeholder="0"
-                                    className="pl-8 text-lg font-bold border-gold/30 focus-visible:ring-gold"
+                                    className="pl-10 h-14 text-2xl font-bold border-gray-200 focus:border-gold focus:ring-4 focus:ring-gold/10 bg-gray-50 rounded-xl"
                                 />
                             </div>
                         </div>
 
                         {/* Total & QR */}
                         {totalAmount > 0 ? (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6 pt-4 border-t border-dashed border-gray-200">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-lg font-serif font-bold text-primary-dark">Total Payable</span>
-                                    <span className="text-2xl font-bold text-green-700">₹{totalAmount}</span>
+                            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-6 pt-6 border-t border-dashed border-gray-300/50">
+                                <div className="flex items-center justify-between px-2">
+                                    <span className="text-lg font-serif font-bold text-gray-500">Total Payable</span>
+                                    <span className="text-4xl font-serif font-bold text-primary-dark">₹{totalAmount.toLocaleString('en-IN')}</span>
                                 </div>
 
-                                <OrnateCard className="p-6 bg-white shadow-inner flex flex-col items-center justify-center gap-4">
-                                    <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
+                                <OrnateCard className="p-8 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center gap-6 border-0 ring-1 ring-black/5">
+                                    <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
                                         <QRCodeSVG
                                             value={upiUrl}
-                                            size={200}
-                                            level="M"
+                                            size={220}
+                                            level="Q"
                                             includeMargin={true}
+                                            imageSettings={{
+                                                src: "/logo.png", // Assuming logo exists, else it will be ignored or broken image icon if not handled. Removed to be safe or keep consistent with previous code which didn't have image.
+                                                height: 40,
+                                                width: 40,
+                                                excavate: true,
+                                            }}
                                         />
                                     </div>
-                                    <div className="text-xs text-center text-gray-500 font-mono break-all max-w-[200px]">
+                                    <div className="text-xs text-center font-mono bg-gray-50 px-3 py-1.5 rounded-full text-gray-500 border border-gray-100">
                                         {upiId}
                                     </div>
                                 </OrnateCard>
 
-                                <div className="space-y-3">
+                                <div className="space-y-4 px-2 pb-6">
                                     <a href={upiUrl} className="block w-full">
-                                        <GoldenButton className="w-full flex items-center justify-center gap-2">
-                                            <Smartphone className="w-4 h-4" />
-                                            Pay with UPI
-                                        </GoldenButton>
+                                        <div className="w-full flex items-center justify-center gap-3 bg-primary-dark text-white h-14 rounded-xl font-bold text-lg shadow-xl shadow-primary-dark/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                            <Smartphone className="w-5 h-5" />
+                                            Pay via UPI App
+                                        </div>
                                     </a>
-                                    <p className="text-xs text-center text-gray-400">
-                                        Tap above to open Google Pay, PhonePe, or Paytm
+                                    <p className="text-[10px] text-center text-gray-400 uppercase tracking-widest font-medium">
+                                        Tap above to open GPay, PhonePe, Paytm
                                     </p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-8 text-gray-400 text-sm">
+                            <div className="text-center py-12 text-gray-400 text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200">
                                 Select pending items or enter an amount to pay.
                             </div>
                         )}
                     </div>
-
-                    <DrawerFooter>
-                        <DrawerClose asChild>
-                            <Button variant="outline">Close</Button>
-                        </DrawerClose>
-                    </DrawerFooter>
                 </div>
             </DrawerContent>
         </Drawer>

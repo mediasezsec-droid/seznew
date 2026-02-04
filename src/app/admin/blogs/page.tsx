@@ -27,7 +27,7 @@ export default async function BlogsAdminPage() {
     const canAccess = isAdmin || await hasModuleAccess(userId, "/admin/blogs");
 
     if (!canAccess) {
-        redirect("/login");
+        redirect("/unauthorized");
     }
 
     const blogs = await prisma.blog.findMany({

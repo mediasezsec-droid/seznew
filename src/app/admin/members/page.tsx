@@ -23,7 +23,7 @@ export default async function MembersAdminPage() {
     const canAccess = isAdmin || await hasModuleAccess(userId, "/admin/members");
 
     if (!canAccess) {
-        redirect("/login");
+        redirect("/unauthorized");
     }
 
     const members = await prisma.memberRegistration.findMany({

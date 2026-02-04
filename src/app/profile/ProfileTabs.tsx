@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Wallet, History, Shield, LayoutGrid } from "lucide-react";
+import { User, Wallet, History, Shield, LayoutGrid, CalendarCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OrnateHeading, OrnateCard } from "@/components/ui/premium-components";
 import { ProfileForm } from "./ProfileForm";
@@ -9,6 +9,7 @@ import { UnifiedPaymentDrawer } from "@/app/fees/UnifiedPaymentDrawer";
 import { FeeList } from "@/app/fees/FeeList";
 import { EventContributionList } from "@/app/fees/EventContributionList";
 import { TransactionHistory } from "@/app/fees/TransactionHistory";
+import { AttendanceCalendar } from "./AttendanceCalendar";
 
 interface ProfileTabsProps {
     user: any;
@@ -18,6 +19,7 @@ interface ProfileTabsProps {
     events: any[];
     pendingFees: any[];
     pendingEvents: any[];
+    attendanceHistory?: any[];
 }
 
 export function ProfileTabs({
@@ -27,9 +29,10 @@ export function ProfileTabs({
     transactions,
     events,
     pendingFees,
-    pendingEvents
+    pendingEvents,
+    attendanceHistory = []
 }: ProfileTabsProps) {
-    const [activeTab, setActiveTab] = useState<"profile" | "contributions">("profile");
+    const [activeTab, setActiveTab] = useState<"profile" | "attendance" | "contributions">("profile");
 
     return (
         <div className="space-y-8">
@@ -39,8 +42,8 @@ export function ProfileTabs({
             />
 
             {/* Tab Navigation */}
-            <div className="flex justify-center">
-                <div className="bg-white/50 backdrop-blur-sm p-1.5 rounded-2xl border border-gold/10 inline-flex shadow-lg">
+            <div className="flex justify-center overflow-x-auto pb-4 md:pb-0">
+                <div className="bg-white/50 backdrop-blur-sm p-1.5 rounded-2xl border border-gold/10 inline-flex shadow-lg whitespace-nowrap">
                     <button
                         onClick={() => setActiveTab("profile")}
                         className={cn(
@@ -52,6 +55,18 @@ export function ProfileTabs({
                     >
                         <User className="w-4 h-4" />
                         My Profile
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("attendance")}
+                        className={cn(
+                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300",
+                            activeTab === "attendance"
+                                ? "bg-primary text-white shadow-md transform scale-105"
+                                : "text-neutral-500 hover:text-primary hover:bg-white/50"
+                        )}
+                    >
+                        <CalendarCheck className="w-4 h-4" />
+                        Attendance
                     </button>
                     <button
                         onClick={() => setActiveTab("contributions")}
@@ -70,14 +85,22 @@ export function ProfileTabs({
 
             {/* Tab Content */}
             <div className="transition-all duration-500 animate-in fade-in slide-in-from-bottom-4">
-                {activeTab === "profile" ? (
+                {activeTab === "profile" && (
                     <OrnateCard className="p-8 border border-gold/20 shadow-2xl bg-white/90 max-w-2xl mx-auto">
                         <ProfileForm
                             user={user}
                             assignedModules={userModules.map(m => m.module)}
                         />
                     </OrnateCard>
-                ) : (
+                )}
+
+                {activeTab === "attendance" && (
+                    <div className="max-w-4xl mx-auto">
+                        <AttendanceCalendar history={attendanceHistory} />
+                    </div>
+                )}
+
+                {activeTab === "contributions" && (
                     <div className="max-w-3xl mx-auto space-y-8">
                         {/* Quick Actions Card */}
                         <OrnateCard className="p-6 bg-gradient-to-br from-primary/5 to-transparent border-gold/10">
