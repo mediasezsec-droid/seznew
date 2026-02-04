@@ -13,7 +13,7 @@ export default async function AdminFeesPage({
 }: {
     searchParams: Promise<{ month?: string; year?: string }>;
 }) {
-    const { authorized } = await requireAccess("update-member-fee");
+    const { authorized } = await requireAccess("/admin/fees");
     if (!authorized) redirect("/");
 
     const resolvedParams = await searchParams;
