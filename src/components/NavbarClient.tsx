@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { GoldenButton } from "./ui/premium-components";
-import { Menu, X, ChevronDown, LayoutDashboard, FileText, Users, Box, LogOut, Settings, Shield, User, Calendar, Image } from "lucide-react";
+import { Menu, X, ChevronDown, LayoutDashboard, FileText, Users, Box, LogOut, Settings, Shield, User, Calendar, Image, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface ModuleLinkInfo {
     id: string;
@@ -49,6 +50,7 @@ export function NavbarClient({ session, userModules }: NavbarClientProps) {
         { id: "khidmat", name: "Khidmat Requests", links: [{ id: "3", path: "/admin/khidmat", label: null }], icon: "FileText" },
         { id: "members", name: "Members", links: [{ id: "4", path: "/admin/members", label: null }], icon: "Users" },
         { id: "users", name: "Users", links: [{ id: "8", path: "/admin/users", label: null }], icon: "User" },
+        { id: "fees", name: "Fees", links: [{ id: "9", path: "/admin/fees", label: null }], icon: "CreditCard" },
         { id: "inventory", name: "Inventory", links: [{ id: "5", path: "/inventory", label: null }], icon: "Box" },
         { id: "modules", name: "Modules", links: [{ id: "6", path: "/admin/modules", label: null }], icon: "Settings" },
         { id: "manage-access", name: "Manage Access", links: [{ id: "7", path: "/admin/manage-access", label: null }], icon: "Shield" },
@@ -65,6 +67,7 @@ export function NavbarClient({ session, userModules }: NavbarClientProps) {
             case "Image": return <Image className="w-4 h-4" />;
             case "Calendar": return <Calendar className="w-4 h-4" />;
             case "User": return <User className="w-4 h-4" />;
+            case "CreditCard": return <CreditCard className="w-4 h-4" />;
             default: return <FileText className="w-4 h-4" />;
         }
     };
@@ -201,100 +204,129 @@ export function NavbarClient({ session, userModules }: NavbarClientProps) {
                     </Link>
                 </div>
 
-                {/* Mobile Menu Toggle */}
-                <button className="md:hidden text-gold shrink-0 ml-auto" onClick={() => setIsOpen(!isOpen)}>
-                    {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-            </nav>
+                {/* Mobile Menu Toggle - Sheet Trigger */}
+                <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                    <SheetTrigger asChild>
+                        <button className="md:hidden text-gold shrink-0 ml-auto">
+                            <Menu className="w-6 h-6" />
+                        </button>
+                    </SheetTrigger>
 
-            {/* Mobile Menu Dropdown */}
-            {isOpen && (
-                <div className="absolute top-full left-0 right-0 bg-primary-dark/95 backdrop-blur-xl border-b border-gold/20 p-6 shadow-2xl md:hidden flex flex-col gap-4 animate-in slide-in-from-top-4 z-[60]">
-                    {links.map(link => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={() => setIsOpen(false)}
-                            className="text-lg font-medium text-white hover:text-gold border-b border-gold/10 pb-2"
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
+                    <SheetContent side="right" className="bg-primary-dark border-l border-gold/20 p-0 w-[300px] sm:w-[350px]">
+                        <div className="flex flex-col h-full overflow-y-auto">
+                            {/* Header */}
+                            <div className="p-6 border-b border-gold/10">
+                                <div className="flex items-center gap-3">
+                                    <img src="/logo-no-bg.png" alt="SEZ" className="h-8 w-auto brightness-0 invert" />
+                                    <span className="font-serif font-bold text-lg text-white">SEZ <span className="text-gold text-xs block font-sans tracking-widest font-normal">Secunderabad</span></span>
+                                </div>
+                            </div>
 
-                    {/* Profile link for logged-in users */}
-                    {session && (
-                        <Link
-                            href="/profile"
-                            onClick={() => setIsOpen(false)}
-                            className="text-lg font-medium text-gold hover:text-cream border-b border-gold/10 pb-2"
-                        >
-                            My Profile
-                        </Link>
-                    )}
+                            {/* Links Container */}
+                            <div className="flex-1 px-6 py-6 flex flex-col gap-6">
+                                <div className="space-y-4">
+                                    {links.map(link => (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            onClick={() => setIsOpen(false)}
+                                            className="block text-lg font-medium text-white hover:text-gold transition-colors"
+                                        >
+                                            {link.label}
+                                        </Link>
+                                    ))}
+                                </div>
 
-                    {hasModuleAccess && (
-                        <div className="pt-2 border-t border-gold/20">
-                            <p className="text-sm font-bold text-gold mb-2 uppercase tracking-wide">
-                                {isAdmin ? "Admin Access" : "My Access"}
-                            </p>
-                            {adminModules.map((module) => {
-                                const primaryLink = getPrimaryLink(module);
-                                if (!primaryLink) return null;
+                                {/* Divider */}
+                                <div className="h-px bg-gold/10 w-full" />
 
-                                if (module.links.length > 1) {
-                                    return (
-                                        <div key={module.id} className="mb-2">
-                                            <p className="text-xs text-gold/70 uppercase tracking-wide mb-1">{module.name}</p>
-                                            {module.links.map((link) => (
-                                                <Link
-                                                    key={link.id}
-                                                    href={link.path}
-                                                    onClick={() => setIsOpen(false)}
-                                                    className="block py-1.5 pl-3 text-white/80 hover:text-gold"
-                                                >
-                                                    {link.label || link.path}
-                                                </Link>
-                                            ))}
+                                {/* Auth / User Links */}
+                                <div className="space-y-4">
+                                    {session && (
+                                        <Link
+                                            href="/profile"
+                                            onClick={() => setIsOpen(false)}
+                                            className="flex items-center gap-3 text-lg font-medium text-gold hover:text-cream transition-colors"
+                                        >
+                                            <User className="w-5 h-5" /> My Profile
+                                        </Link>
+                                    )}
+
+                                    {hasModuleAccess && (
+                                        <div className="space-y-3">
+                                            <p className="text-xs font-bold text-gold/50 uppercase tracking-widest">
+                                                {isAdmin ? "Admin Access" : "My Access"}
+                                            </p>
+
+                                            <div className="space-y-1">
+                                                {adminModules.map((module) => {
+                                                    const primaryLink = getPrimaryLink(module);
+                                                    if (!primaryLink) return null;
+
+                                                    if (module.links.length > 1) {
+                                                        return (
+                                                            <div key={module.id} className="mb-3">
+                                                                <p className="flex items-center gap-2 text-sm text-white/60 mb-1">
+                                                                    {getIcon(module.icon)} {module.name}
+                                                                </p>
+                                                                <div className="pl-6 border-l border-gold/10 space-y-1">
+                                                                    {module.links.map((link) => (
+                                                                        <Link
+                                                                            key={link.id}
+                                                                            href={link.path}
+                                                                            onClick={() => setIsOpen(false)}
+                                                                            className="block py-1 text-sm text-white/80 hover:text-gold"
+                                                                        >
+                                                                            {link.label || link.path}
+                                                                        </Link>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <Link
+                                                            key={module.id}
+                                                            href={primaryLink}
+                                                            onClick={() => setIsOpen(false)}
+                                                            className="flex items-center gap-2 py-2 text-sm text-white/80 hover:text-gold"
+                                                        >
+                                                            {getIcon(module.icon)} {module.name}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    );
-                                }
+                                    )}
+                                </div>
+                            </div>
 
-                                return (
-                                    <Link
-                                        key={module.id}
-                                        href={primaryLink}
-                                        onClick={() => setIsOpen(false)}
-                                        className="block py-2 text-white/80 hover:text-gold"
+                            {/* Footer Actions */}
+                            <div className="p-6 border-t border-gold/10 space-y-3 bg-black/20">
+                                {session ? (
+                                    <button
+                                        onClick={() => signOut()}
+                                        className="w-full flex items-center justify-center gap-2 py-3 text-red-400 font-bold border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-colors"
                                     >
-                                        {module.name}
+                                        <LogOut className="w-4 h-4" /> Logout
+                                    </button>
+                                ) : (
+                                    <Link href="/login" onClick={() => setIsOpen(false)} className="w-full block">
+                                        <button className="w-full py-3 text-center text-gold font-bold border border-gold/30 rounded-lg hover:bg-gold/10 transition-colors">
+                                            Login
+                                        </button>
                                     </Link>
-                                );
-                            })}
+                                )}
+
+                                <Link href="/join" onClick={() => setIsOpen(false)} className="w-full block">
+                                    <GoldenButton className="w-full justify-center">Join Committee</GoldenButton>
+                                </Link>
+                            </div>
                         </div>
-                    )}
-
-                    <div className="pt-2 flex flex-col gap-3">
-                        {session ? (
-                            <button
-                                onClick={() => signOut()}
-                                className="w-full py-3 text-center text-red-400 font-bold border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
-                            >
-                                Logout
-                            </button>
-                        ) : (
-                            <Link href="/login" onClick={() => setIsOpen(false)} className="w-full block">
-                                <button className="w-full py-3 text-center text-gold font-bold border border-gold/30 rounded-lg hover:bg-gold/10 transition-colors">
-                                    Login
-                                </button>
-                            </Link>
-                        )}
-
-                        <Link href="/join" onClick={() => setIsOpen(false)} className="w-full block">
-                            <GoldenButton className="w-full">Join Committee</GoldenButton>
-                        </Link>
-                    </div>
-                </div>
-            )}
+                    </SheetContent>
+                </Sheet>
+            </nav>
         </header>
     );
 }
