@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FloorConfig } from "@/generated/prisma/client";
 import { createFloor, updateFloor, deleteFloor, assignUserToFloor, removeUserFromFloor } from "@/app/actions/floors";
 import { searchUsers } from "@/app/actions/modules";
@@ -31,34 +32,41 @@ export function FloorManager({ initialFloors, userRole, assignedFloorId }: Floor
     const [floors, setFloors] = useState<FloorWithUsers[]>(initialFloors);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [newFloorName, setNewFloorName] = useState("");
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
 
     const handleCreate = async () => {
         if (!newFloorName.trim()) return;
+        console.log(`[Floors] Creating floor: ${newFloorName}`);
+        setLoading(true);
         const res = await createFloor(newFloorName);
-        if (res.success && res.data) {
-            toast.success("Floor created successfully", { icon: "✨" });
-            // For a proper optimistic update we'd need the full structure, but create returns basic.
-            // A reload ensures we're synced, but we can try to append a basic structure if we want strict no-reload.
-            // Given the complexity of relations, a reload for *creating a new floor* is acceptable, 
-            // but we can make it feel smoother.
+        if (res.success) {
+            console.log("[Floors] Creation success.");
+            toast.success("Floor created");
             setNewFloorName("");
             setIsCreateOpen(false);
-            window.location.reload();
+            router.refresh();
         } else {
-            toast.error(res.error || "Failed to create floor");
+            console.error("[Floors] Creation failed:", res.error);
+            toast.error(res.error || "Failed");
         }
+        setLoading(false);
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure? This will remove all assignments for this floor.")) return;
-        setFloors(prev => prev.filter(f => f.id !== id)); // Optimistic remove
+        if (!confirm("Delete this floor?")) return;
+        console.log(`[Floors] Deleting floor: ${id}`);
+        setLoading(true);
         const res = await deleteFloor(id);
         if (res.success) {
-            toast.success("Floor removed", { icon: "🗑️" });
+            console.log("[Floors] Delete success.");
+            toast.success("Floor deleted");
+            router.refresh();
         } else {
-            toast.error(res.error || "Failed to delete");
-            // Ideally revert here, but delete is usually final
+            console.error("[Floors] Delete failed:", res.error);
+            toast.error(res.error || "Failed");
         }
+        setLoading(false);
     };
 
     return (

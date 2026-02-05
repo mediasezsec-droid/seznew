@@ -194,7 +194,9 @@ export function EditFeeDrawer({
             }
 
             // If we have an amount to pay
-            if (parseFloat(paymentAmount) > 0 && recordId) {
+            console.log(`[FeePayment] Attempting payment. User: ${userId}, Amount: ${paymentAmount}, Mode: ${paymentMode}, Month: ${month}/${year}`);
+            setLoading(true);
+            try {
                 const payResult = await recordPayment(
                     userId,
                     parseFloat(paymentAmount),
@@ -206,18 +208,21 @@ export function EditFeeDrawer({
                 );
 
                 if (payResult.success) {
+                    console.log("[FeePayment] Payment successful.");
                     toast.success("Payment recorded");
                     setPaymentAmount("");
                     setPaymentReference("");
                     loadTransactions(); // Reload history
                     router.refresh();
                 } else {
+                    console.error("[FeePayment] Payment failed:", payResult.error);
                     toast.error(payResult.error || "Payment failed");
                 }
-            } else {
-                toast.error("Invalid amount or record missing.");
+            } catch (e) {
+                console.error("[FeePayment] Exception:", e);
+                toast.error("Error recording payment");
             }
-
+            setLoading(false);
         } catch (e) {
             toast.error("Error saving");
         }
@@ -225,14 +230,18 @@ export function EditFeeDrawer({
     };
 
     const handleRevoke = async (txId: string) => {
-        if (!confirm("Are you sure you want to revoke this transaction?")) return;
+        if (!confirm("Are you sure you want to revoke this transaction? Allocations will be reversed.")) return;
+
+        console.log(`[FeeRevoke] Revoking transaction: ${txId}`);
         setLoading(true);
         const res = await revokeTransaction(txId);
         if (res.success) {
+            console.log("[FeeRevoke] Success.");
             toast.success("Transaction revoked");
             loadTransactions();
             router.refresh();
         } else {
+            console.error("[FeeRevoke] Failed:", res.error);
             toast.error(res.error || "Failed");
         }
         setLoading(false);
@@ -378,11 +387,15 @@ export function EditFeeDrawer({
                                                         </div>
                                                         <div>
                                                             <div className="font-semibold text-gray-900">₹{tx.amount.toLocaleString()}</div>
-                                                            <div className="text-[10px] text-gray-400 flex gap-2">
-                                                                <span>{new Date(tx.date).toLocaleDateString()}</span>
+                                                            <span className="text-[10px] text-gray-400 flex gap-2">
+                                                                <span>
+                                                                    {new Date(tx.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                    <span className="opacity-50 mx-1">at</span>
+                                                                    {new Date(tx.date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                                                </span>
                                                                 <span>•</span>
                                                                 <span className="uppercase">{tx.mode}</span>
-                                                            </div>
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <Button size="icon" variant="ghost" className="text-gray-300 hover:text-red-500 hover:bg-red-50" onClick={() => handleRevoke(tx.id)}>

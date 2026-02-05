@@ -93,9 +93,27 @@ export async function bulkGenerateFees(
 /**
  * Bulk generate Event Contributions for all users
  */
-export async function bulkGenerateEventFunds(title: string, amount: number) {
+export async function bulkGenerateEventFunds(
+  title: string,
+  amount: number,
+  targetUserIds?: string | string[],
+) {
   try {
-    const users = await prisma.user.findMany({ select: { id: true } });
+    let users: { id: string }[] = [];
+
+    if (targetUserIds) {
+      const ids = Array.isArray(targetUserIds)
+        ? targetUserIds
+        : [targetUserIds];
+      if (ids.length > 0) {
+        users = await prisma.user.findMany({
+          where: { id: { in: ids } },
+          select: { id: true },
+        });
+      }
+    } else {
+      users = await prisma.user.findMany({ select: { id: true } });
+    }
 
     // Using transaction for atomicity is good, or createMany
     const data = users.map((user) => ({

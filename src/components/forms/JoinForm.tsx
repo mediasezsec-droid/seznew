@@ -10,6 +10,8 @@ export function JoinForm() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
+        const itsNumber = formData.get('ITS');
+        console.log("[Join] Attempting registration for ITS:", itsNumber);
         setLoading(true);
         const result = await submitMemberRegistration(formData);
 
@@ -19,10 +21,12 @@ export function JoinForm() {
         setLoading(false);
 
         if (result.error) {
+            console.log("[Join] Error:", result.error);
             toast.error(result.error);
         } else {
             setIsSuccess(true);
             toast.success("Registration successful!");
+            console.log("[Join] Success");
         }
     };
 

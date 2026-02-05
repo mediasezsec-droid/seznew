@@ -57,13 +57,16 @@ export function EventDetailsDrawer({ title, onClose, children }: EventDetailsDra
         if (!editTitle || !editAmount) return;
         if (!confirm(`This will update the Title and Amount for ALL ${data.length} members. Continue?`)) return;
 
+        console.log(`[EventDetails] Global update. Title: "${title}" -> "${editTitle}", Amount: ${editAmount}`);
         setLoading(true);
         const res = await updateBulkEvent(title, editTitle, parseFloat(editAmount));
         if (res.success) {
+            console.log("[EventDetails] Update success.");
             toast.success("Event updated successfully");
             setOpen(false);
             router.refresh();
         } else {
+            console.error("[EventDetails] Update failed:", res.error);
             toast.error(res.error || "Failed");
         }
         setLoading(false);
@@ -72,13 +75,16 @@ export function EventDetailsDrawer({ title, onClose, children }: EventDetailsDra
     const handleGlobalDelete = async () => {
         if (!confirm(`Are you sure you want to DELETE this event for ALL ${data.length} members? This cannot be undone.`)) return;
 
+        console.log(`[EventDetails] Global delete for "${title}"`);
         setLoading(true);
         const res = await deleteBulkEvent(title);
         if (res.success) {
+            console.log("[EventDetails] Delete success.");
             toast.success("Event deleted successfully");
             setOpen(false);
             router.refresh();
         } else {
+            console.error("[EventDetails] Delete failed:", res.error);
             toast.error(res.error || "Failed");
         }
         setLoading(false);
@@ -93,6 +99,8 @@ export function EventDetailsDrawer({ title, onClose, children }: EventDetailsDra
         const row = data.find(d => d.id === id);
         if (!row) return;
 
+        console.log(`[EventDetails] Single update. ID: ${id}, Amount: ${singleEditAmount}`);
+
         const res = await updateEventContribution(id, row.title, parseFloat(singleEditAmount));
         if (res.success) {
             toast.success("Updated");
@@ -100,6 +108,7 @@ export function EventDetailsDrawer({ title, onClose, children }: EventDetailsDra
             loadData(); // Reload to reflect changes locally if needed, though title is same.
             router.refresh();
         } else {
+            console.error("[EventDetails] Single update failed:", res.error);
             toast.error("Failed");
         }
         setLoading(false);

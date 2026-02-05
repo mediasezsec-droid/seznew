@@ -143,7 +143,7 @@ export function MenuCountdown({ occasionDate, occasionTime, eventTitle, children
                         <div className="mt-8 flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
                             <div className="bg-white/5 border border-white/10 px-8 py-4 rounded-2xl backdrop-blur-sm">
                                 <span className="text-xl md:text-2xl font-serif text-gold/80 italic">
-                                    Something delicious is coming soon
+                                    Menu update in progress.
                                 </span>
                             </div>
                             <p className="text-cream/40 text-sm max-w-xs text-center">

@@ -153,18 +153,22 @@ export function ThaalCountDrawer({
             }
         }
 
+        console.log("[ThaalCount] Submitting thaal counts:", updates, "and total override:", totalOverride, "for event ID:", eventId);
+
         const result = await updateEventThaalsDone(eventId, {
             hallCounts: Object.keys(updates).length > 0 ? updates : undefined,
             totalOverride
         });
 
         if (result.success) {
+            console.log("[ThaalCount] Success");
             setSuccess(true);
             setTimeout(() => {
                 setOpen(false);
                 setSuccess(false);
             }, 1500);
         } else {
+            console.log("[ThaalCount] Error:", result.error);
             setError(result.error || "Failed to update");
         }
         setIsLoading(false);
