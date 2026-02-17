@@ -103,7 +103,7 @@ export function ThaalCountDrawer({
             eventDate.setHours(hours, minutes, 0, 0);
 
             // Available time = 15 min after event
-            const availableTime = new Date(eventDate.getTime() + 15 * 60 * 1000);
+            const availableTime = new Date(eventDate.getTime() - 30 * 60 * 1000);
 
             const diff = availableTime.getTime() - now.getTime();
 
